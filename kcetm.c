@@ -6,6 +6,7 @@
  * http://davejingtian.org
  */
 #include <linux/module.h>
+#include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/timekeeping.h>
 #include <linux/time64.h>
@@ -98,10 +99,51 @@ static inline unsigned long long tsc_to_ns(unsigned long long cycles)
 {
 }
 
+static inline void perf_print(unsigned long long diff)
+{
+	switch (kcetm_perf_option) {
+	case KCETM_MS:
+		pr_info("kcetm: %s took [%llu] us\n", __func__, diff);
+		break;
+	case KCETM_NS:
+		pr_info("kcetm: %s took [%llu] ns\n", __func__, diff);
+		break;
+	case KCETM_TSC:
+		pr_info("kcetm: %s took [%llu] cycles ([%llu] ns)\n",
+			__func__, diff, tsc_to_ns(diff));
+		break;
+	default:
+		pr_err("kcetm: not supported perf option\n");
+		break;
+	}
+}
+
+/* Target function */
+static void kcetm_target(void)
+{
+	struct kcetm_perf_time t;
+	unsigned long long res;
+	void *p;
+
+	/* Start perf */\
+	perf_start(&t);
+
+	/* TODO: do sth non-trivial */
+	p = kmalloc(1024, GFP_KERNEL);
+	if (!p)
+		pr_err("kcetm: kmalloc failed\n");
+
+	/* End perf */
+	res = perf_end(&t);
+	perf_print(res);
+}
+
+
 
 static int __init kcetm_init(void)
 {
 	pr_info("kcetm: Entering: %s\n", __func__);
+	kcetm_target();
 	return 0;
 }
 
