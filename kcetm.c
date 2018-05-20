@@ -39,7 +39,8 @@ struct kcetm_perf_time {
 	u64 end_tsc_low;
 };
 
-static int kcetm_perf_option;
+/* Change the perf option here */
+static int kcetm_perf_option = 2;
 
 /* Perf helpers */
 static inline void perf_start(struct kcetm_perf_time *t)
